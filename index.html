@@ -3,24 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Activities Game</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Fleet Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js" defer></script>
+    <style>
+        .vehicle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .status-active {
+            background-color: #10B981;
+        }
+        .status-maintenance {
+            background-color: #F59E0B;
+        }
+        .status-inactive {
+            background-color: #EF4444;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
-    <h1 class="text-3xl font-bold mb-4">Daily Activities Game</h1>
-    <div id="activity-list" class="w-full max-w-md bg-white rounded-lg shadow-md p-4">
-        <h2 class="text-xl font-semibold mb-2">Your Activities</h2>
-        <ul id="activities" class="list-disc pl-5"></ul>
-        <input type="text" id="activity-input" class="border rounded p-2 w-full mt-2" placeholder="Add a new activity">
-        <button id="add-activity" class="bg-blue-500 text-white rounded p-2 mt-2 w-full">Add Activity</button>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-truck-moving text-2xl text-blue-600 mr-2"></i>
+                    <span class="text-xl font-bold text-gray-800">FleetTrack Pro</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="add-vehicle-btn" class="px-3 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                        <i class="fas fa-plus mr-1"></i> Add Vehicle
+                    </button>
+                    <div class="relative">
+                        <i class="fas fa-bell text-xl text-gray-500 hover:text-blue-600 cursor-pointer"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Vehicle Modal -->
+    <div id="vehicle-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Add New Vehicle</h3>
+                    <button data-modal-close class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="vehicle-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">License Plate</label>
+                            <input type="text" name="licensePlate" required 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Make</label>
+                                <input type="text" name="make" required 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Model</label>
+                                <input type="text" name="model" required 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Year</label>
+                                <input type="number" name="year" min="2000" max="2025" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Type</label>
+                                <select name="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="Van">Van</option>
+                                    <option value="Truck">Truck</option>
+                                    <option value="Car">Car</option>
+                                    <option value="SUV">SUV</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="active">Active</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Driver</label>
+                            <select name="driver" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Unassigned</option>
+                                ${fleetData.drivers.map(driver => `<option value="${driver}">${driver}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="pt-4 border-t">
+                            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Save Vehicle
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div id="progress" class="mt-4 space-y-2">
-        <p class="text-lg">Points: <span id="points">0</span></p>
-        <p class="text-lg">Streak: <span id="streak">0</span> days</p>
-        <p class="text-lg">Level: <span id="level">1</span></p>
-        <p class="text-sm text-gray-500">Tip: Longer activities give more points!</p>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Dashboard Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500">Total Vehicles</p>
+                        <p class="text-3xl font-bold">24</p>
+                    </div>
+                    <i class="fas fa-truck text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500">Active</p>
+                        <p class="text-3xl font-bold">18</p>
+                    </div>
+                    <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500">In Maintenance</p>
+                        <p class="text-3xl font-bold">4</p>
+                    </div>
+                    <i class="fas fa-tools text-3xl text-yellow-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500">Fuel Consumption</p>
+                        <p class="text-3xl font-bold">1,240L</p>
+                    </div>
+                    <i class="fas fa-gas-pump text-3xl text-red-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle List and Map -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Vehicle List -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">Vehicle Inventory</h2>
+                </div>
+                <div class="divide-y divide-gray-200" id="vehicle-list">
+                    <!-- Vehicles will be loaded here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Map and Status -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-lg shadow p-6 h-64">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Vehicle Locations</h3>
+                    <div class="bg-gray-200 rounded h-full flex items-center justify-center">
+                        <i class="fas fa-map-marked-alt text-4xl text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Status Overview</h3>
+                    <canvas id="statusChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Schedule -->
+        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">Upcoming Maintenance</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="maintenance-list">
+                        <!-- Maintenance items will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </body>
 </html>
