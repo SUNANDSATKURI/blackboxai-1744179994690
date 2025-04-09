@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Activities Game</title>
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="script.js" defer></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <h1 class="text-3xl font-bold mb-4">Daily Activities Game</h1>
+    <div id="activity-list" class="w-full max-w-md bg-white rounded-lg shadow-md p-4">
+        <h2 class="text-xl font-semibold mb-2">Your Activities</h2>
+        <ul id="activities" class="list-disc pl-5"></ul>
+        <input type="text" id="activity-input" class="border rounded p-2 w-full mt-2" placeholder="Add a new activity">
+        <button id="add-activity" class="bg-blue-500 text-white rounded p-2 mt-2 w-full">Add Activity</button>
+    </div>
+    <div id="progress" class="mt-4 space-y-2">
+        <p class="text-lg">Points: <span id="points">0</span></p>
+        <p class="text-lg">Streak: <span id="streak">0</span> days</p>
+        <p class="text-lg">Level: <span id="level">1</span></p>
+        <p class="text-sm text-gray-500">Tip: Longer activities give more points!</p>
+    </div>
+</body>
+</html>
